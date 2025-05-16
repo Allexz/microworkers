@@ -1,18 +1,41 @@
-﻿using Microworkers.Domain.Core.Exceptions;
+﻿using FluentResults;
 
 namespace Microworkers.Domain.Core.ValueObjects;
 
-public record Address
+public sealed record Address
 {
-    public string State { get; }
-    public int ZipCode { get; }
-    public string City { get; }
-    public string NeighborHood { get; }
-    public string Street { get; }
-    public string Number { get; }
-    public string? Additional { get; } // Único opcional
+    private Address() { }
 
-    public Address(
+    public string State { get; init; }
+    public int ZipCode { get; init; }
+    public string City { get; init; }
+    public string NeighborHood { get; init; }
+    public string Street { get; init; }
+    public string Number { get; init; }
+    public string? Additional { get; init; } // Único opcional
+
+    public Address With(
+    string? state = null,
+    int? zipCode = null,
+    string? city = null,
+    string? neighborHood = null,
+    string? street = null,
+    string? number = null,
+    string? additional = null)
+    {
+        return new Address
+        {
+            State = state ?? this.State,
+            ZipCode = zipCode ?? this.ZipCode,
+            City = city ?? this.City,
+            NeighborHood = neighborHood ?? this.NeighborHood,
+            Street = street ?? this.Street,
+            Number = number ?? this.Number,
+            Additional = additional ?? this.Additional
+        };
+    }
+
+    public static Result<Address> Create(
         string state,
         int zipCode,
         string city,
@@ -21,44 +44,132 @@ public record Address
         string number,
         string? additional = null)
     {
+        List<Error> errors = new();
         // Validações
-        State = ValidateState(state);
-        ZipCode = ValidateZipCode(zipCode);
-        City = ValidateCity(city);
-        NeighborHood = ValidateNeighborHood(neighborHood);
-        Street = ValidateStreet(street);
-        Number = ValidateNumber(number);
-        Additional = additional;
+        ValidateState(state, errors);
+        ValidateZipCode(zipCode, errors);
+        ValidateCity(city, errors);
+        ValidateNeighborHood(neighborHood, errors);
+        ValidateStreet(street, errors);
+        ValidateNumber(number, errors);
+        ValidateAdditional(additional, errors);
+
+        if (errors.Any())
+            return Result.Fail<Address>(errors);
+
+        return Result.Ok(new Address
+        {
+            State = state,
+            ZipCode = zipCode,
+            City = city,
+            NeighborHood = neighborHood,
+            Street = street,
+            Number = number,
+            Additional = additional
+        });
+    }
+
+    public static Result<Address> Update(
+        Address original,
+        string? pState = null,
+        int? pZipCode = null,
+        string? pCity = null,
+        string? pNeighborHood = null,
+        string? pStreet = null,
+        string? pNumber = null,
+        string? pAdditional = null)
+    {
+        List<Error> errors = new();
+        // Validações
+        if(pState != null ) ValidateState(pState, errors);
+        if(pZipCode.HasValue) ValidateZipCode(pZipCode.Value, errors);
+        if(pCity != null) ValidateCity(pCity, errors);
+        if(pNeighborHood != null) ValidateNeighborHood(pNeighborHood, errors);
+        if(pStreet != null) ValidateStreet(pStreet, errors);
+        if(pNumber != null) ValidateNumber(pNumber, errors);
+        if(pAdditional != null) ValidateAdditional(pAdditional, errors);
+
+        if (errors.Any())
+            return Result.Fail<Address>(errors);
+
+        return Result.Ok(new Address
+        {
+            State = pState ?? original.State ,
+            ZipCode = pZipCode.HasValue ? pZipCode.Value : original.ZipCode,
+            City = pCity ?? original.City,
+            NeighborHood = pNeighborHood ?? original.NeighborHood,
+            Street = pState ?? original.Street,
+            Number = pNumber ?? original.Number,
+            Additional = pAdditional ?? original.Additional
+        });
+    }
+
+    private static void ValidateAdditional(string? additional, List<Error> errors)
+    {
+        if (additional?.Length > 30)
+        {
+            errors.Add(new Error("Additional is required and must have up to 30 characters")
+                .WithMetadata("Field", nameof(additional)));
+        }
     }
 
     // Métodos de validação separados para melhor legibilidade
-    private static string ValidateState(string state) =>
-        state?.Length == 2
-            ? state
-            : throw new DomainException("State must be exactly 2 characters long", nameof(state));
+    private static void ValidateState(string state, List<Error> errors)
+    {
+        if (string.IsNullOrWhiteSpace(state) || state.Length != 2)
+        {
+             errors.Add(new Error("State is required and must have exactly 2 characters")
+                .WithMetadata("Field", nameof(state)));
+        }
+    }
 
-    private static int ValidateZipCode(int zipCode) =>
-        zipCode > 0 && zipCode.ToString().Length == 8
-            ? zipCode
-            : throw new DomainException("ZipCode must be a positive 8-digit number", nameof(zipCode));
+    private static void ValidateZipCode(int zipCode, List<Error> errors)
+    {
+        if (zipCode <= 0)
+        {
+             errors.Add(new Error("ZipCode must be a positive number")
+                .WithMetadata("Field", nameof(zipCode)));
+        }
+        else if (zipCode.ToString().Length != 8)
+        {
+             errors.Add(new Error("ZipCode must have exactly 8 digits")
+                .WithMetadata("Field", nameof(zipCode)));
+        }
+    }
 
-    private static string ValidateCity(string city) =>
-        !string.IsNullOrWhiteSpace(city) && city.Length <= 75
-            ? city
-            : throw new DomainException("City is required and must have up to 75 characters", nameof(city));
+    private static void ValidateCity(string city, List<Error> errors)
+    {
+        if (string.IsNullOrWhiteSpace(city) || city.Length > 75)
+        {
+             errors.Add(new Error("City is required and must have up to 75 characters")
+                .WithMetadata("Field", nameof(city)));
+        }
+    }
 
-    private static string ValidateNeighborHood(string neighborHood) =>
-        !string.IsNullOrWhiteSpace(neighborHood) && neighborHood.Length <= 75
-            ? neighborHood
-            : throw new DomainException("NeighborHood is required and must have up to 75 characters", nameof(neighborHood));
-
-    private static string ValidateStreet(string street) =>
-        !string.IsNullOrWhiteSpace(street) && street.Length <= 75
-            ? street
-            : throw new DomainException("Street is required and must have up to 75 characters", nameof(street));
-
-    private static string ValidateNumber(string number) =>
-        !string.IsNullOrWhiteSpace(number) && number.Length <= 10
-            ? number
-            : throw new DomainException("Number is required and must have up to 10 characters", nameof(number));
+    private static void ValidateNeighborHood(string neighborHood, List<Error> errors)
+    {
+        if (string.IsNullOrWhiteSpace(neighborHood) || neighborHood.Length > 75)
+        {
+             errors.Add(new Error("NeighborHood is required and must have up to 75 characters")
+                .WithMetadata("Field", nameof(neighborHood)));
+        }
+    }
+    private static void ValidateStreet(string street, List<Error> errors)
+    {
+        if (string.IsNullOrWhiteSpace(street) || street.Length > 75)
+        {
+             errors.Add(new Error("Street is required and must have up to 75 characters")
+                .WithMetadata("Field", nameof(street)));
+        }
+    }
+   
+    private static void ValidateNumber(string number, List<Error> errors)
+    {
+        if (string.IsNullOrWhiteSpace(number) || number.Length > 10)
+        {
+             errors.Add(new Error("Number is required and must have up to 10 characters")
+                .WithMetadata("Field", nameof(number)));
+        }
+    }
+        
 }

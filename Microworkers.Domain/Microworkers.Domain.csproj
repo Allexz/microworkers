@@ -10,4 +10,8 @@
     <PackageReference Include="FluentResults" Version="3.16.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+  </ItemGroup>
+
 </Project>

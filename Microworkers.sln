@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microworkers.Domain", "Microworkers.Domain\Microworkers.Domain.csproj", "{B167CFC5-3C93-447F-BEE6-DC5ADC4C0372}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microworkers.Infrastructure", "Microworkers.Infrastructure\Microworkers.Infrastructure.csproj", "{CCE28350-F2DE-4076-8F22-591A9AB9CE63}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microworkers.Tests", "Microworkers.Tests\Microworkers.Tests.csproj", "{EF084B35-467D-4D1F-91A4-44122CD2F669}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microworkers.ApiServices", "Microworkers.ApiServices\Microworkers.ApiServices.csproj", "{9BBAD329-58F4-4EB1-B951-A03F16C2E07C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{EF084B35-467D-4D1F-91A4-44122CD2F669}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF084B35-467D-4D1F-91A4-44122CD2F669}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF084B35-467D-4D1F-91A4-44122CD2F669}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BBAD329-58F4-4EB1-B951-A03F16C2E07C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BBAD329-58F4-4EB1-B951-A03F16C2E07C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BBAD329-58F4-4EB1-B951-A03F16C2E07C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BBAD329-58F4-4EB1-B951-A03F16C2E07C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
