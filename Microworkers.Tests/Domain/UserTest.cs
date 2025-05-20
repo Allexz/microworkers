@@ -1,111 +1,121 @@
-﻿using FluentAssertions;
-using FluentResults;
-using Microworkers.Domain.Core.Aggregates;
+﻿using Bogus;
 using Microworkers.Domain.Core.Exceptions;
 using Microworkers.Domain.Core.ValueObjects;
+using Microworkers.Tests.TestData;
 
 namespace Microworkers.Tests.Domain;
 public class UserTest
 {
     [Fact]
-    public void Should_Not_Create_User_If_Username_Isnt_Email()
+    public void Given_New_User_When_Username_Invalid_Format_Then_Throw_Exception()
     {
-        Result<User> result =  
-            User.Create(Guid.NewGuid(),
-           "John Doe"
-           , "123456789"
-           , "password1234"
-           , Phone.Create(123456789).Value
-           , "johndoe");
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "Invalid email format" &&
-            error.Metadata["Field"].ToString() =="username");
-    }
-
-
-    [Fact]
-    public void Should_Not_Create_User_Phone()
-    {
-        Result<Phone> result = Phone.Create(12345678);
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "Phone number must have at 9 digits." &&
-            error.Metadata["Field"].ToString() == "number");
+        Faker faker = new Faker();
+        var expectedMessage = "Username must be a valid email address";
+        var exception = Assert.Throws<InvalidUserDomainException>(  
+            () => UserTestData.GenerateUserWithInvalidUserName());
+        Assert.Contains(expectedMessage, exception.Message);
     }
 
     [Fact]
-    public void Should_Not_Create_User_Address_StateError()
+    public void Given_New_User_When_Name_Invalid_Format_Then_Throw_Exception()
     {
-        Result<Address> result = Address.Create(
-            "SPA",
-            12345678,
-            "São Paulo",
-            "Centro",
-            "Rua das Flores",
-            "123");
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "State is required and must have exactly 2 characters" &&
-            error.Metadata["Field"].ToString() == "state");
+        Faker faker = new Faker();
+        var expectedMessage = "Name cannot be empty";
+        var exception = Assert.Throws<InvalidUserDomainException>(
+            () => UserTestData.GenerateUserWithInvalidName());
+        Assert.Contains(expectedMessage, exception.Message);
     }
 
     [Fact]
-    public void Should_Not_Create_User_Address_ZipCodeError()
+    public void Given_New_User_When_Name_Is_Too_Long_Then_Throw_Exception()
     {
-        Result<Address> result = Address.Create(
-            "SP",
-            123456789,
-            "São Paulo",
-            "Centro",
-            "Rua das Flores",
-            "123");
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "ZipCode must have exactly 8 digits" &&
-            error.Metadata["Field"].ToString() == "zipCode");
+        Faker faker = new Faker();
+        var expectedMessage = "Name must be at least 3 character and cannot be longer than 75.";
+        var exception = Assert.Throws<InvalidUserDomainException>(
+            () => UserTestData.GenerateUserWithInvalidLongName());
+        Assert.Contains(expectedMessage, exception.Message);
     }
 
     [Fact]
-    public void Should_Not_Create_User_Address_NumberError()
+    public void Give_New_User_When_CPF_Invalid_Then_Throw_Exception()
     {
-        Result<Address> result = Address.Create(
-            "SP",
-            12345678,
-            "São Paulo",
-            "Centro",
-            "Rua das Flores",
-            "123555555555555555555");
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "Number is required and must have up to 10 characters" &&
-            error.Metadata["Field"].ToString() == "number");
+        Faker faker = new Faker();
+        var expectedMessage = "Document must be in the format XXX.XXX.XXX-XX.";
+        var exception = Assert.Throws<InvalidUserDomainException>(
+            () => UserTestData.GenerateUserWithInvalidCpf());
+        Assert.Contains(expectedMessage, exception.Message);
     }
 
     [Fact]
-    public void Should_Not_Update_User_Address_NumberError()
+    public void Give_New_User_When_Phone_Invalid_Then_Throw_Exception()
     {
-        Address address = Address.Create(
-            "SP",
-            12345678,
-            "São Paulo",
-            "Centro",
-            "Rua das Flores",
-            "123").Value;
-
-        Result<Address> result = Address.Update(
-            address,
-            pNumber: "123555555555555555555");
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error =>
-            error.Message == "Number is required and must have up to 10 characters" &&
-            error.Metadata["Field"].ToString() == "number");
+        Faker faker = new Faker();
+        var expectedMessage = "Phone must be in the format (XX)XXXXX-XXXX";
+        var exception = Assert.Throws<InvalidUserDomainException>(
+            () => UserTestData.GenerateUserWithInvalidPhone());
+        Assert.Contains(expectedMessage, exception.Message);
     }
+
+    [Theory]
+    [InlineData("Novo Estado", null, null, null, null, null, null)]
+    [InlineData(null, "98765-432", null, null, null, null, null)]
+    [InlineData(null, null, "Nova Cidade", null, null, null, null)]
+    [InlineData(null, null, null, "Novo Bairro", null, null, null)]
+    [InlineData(null, null, null, null, "Nova Rua", null, null)]
+    [InlineData(null, null, null, null, null, "999", null)]
+    [InlineData(null, null, null, null, null, null, "Novo Complemento")]
+    public void With_ShouldUpdateOnlySpecifiedFields(
+    string? newState, string? newZipCode, string? newCity,
+    string? newNeighborHood, string? newStreet, string? newNumber, string? newAdditional)
+    {
+        // Arrange
+        var original = AddressTestData.GenerateValidAddress();
+
+        // Act
+        var updated = original.With(
+            state: newState,
+            zipCode: newZipCode,
+            city: newCity,
+            neighborHood: newNeighborHood,
+            street: newStreet,
+            number: newNumber,
+            additional: newAdditional
+        );
+
+        // Assert
+        Assert.Equal(newState ?? original.State, updated.State);
+        Assert.Equal(newZipCode ?? original.ZipCode, updated.ZipCode);
+        Assert.Equal(newCity ?? original.City, updated.City);
+        Assert.Equal(newNeighborHood ?? original.NeighborHood, updated.NeighborHood);
+        Assert.Equal(newStreet ?? original.Street, updated.Street);
+        Assert.Equal(newNumber ?? original.Number, updated.Number);
+        Assert.Equal(newAdditional ?? original.Additional, updated.Additional);
+    }
+
+    [Theory]
+    [InlineData(null, "12345-678", "São Paulo", "Centro", "Rua A", "123")] // State nulo
+    [InlineData("SP", null, "São Paulo", "Centro", "Rua A", "123")] // ZipCode nulo
+    [InlineData("SP", "12345-678", null, "Centro", "Rua A", "123")] // City nulo
+    [InlineData("SP", "12345-678", "São Paulo", null, "Rua A", "123")] // Neighborhood nulo
+    [InlineData("SP", "12345-678", "São Paulo", "Centro", null, "123")] // Street nulo
+    [InlineData("SP", "12345-678", "São Paulo", "Centro", "Rua A", null)] // Number nulo
+    public void Create_WithInvalidData_ShouldThrowException(
+    string state, string zipCode, string city,
+    string neighborHood, string street, string number)
+    {
+        // Act & Assert
+        Assert.Throws<InvalidAddressDomainException>(() =>
+            Address.Create(state, zipCode, city, neighborHood, street, number));
+    }
+
+
+
+
+
+
+
+
+
 
 
 }
