@@ -1,10 +1,29 @@
 ﻿using Microworkers.Domain.Core.Enums;
 using Microworkers.Domain.Core.Exceptions;
 using Microworkers.Domain.Core.ValueObjects;
+using Microworkers.Domain.Shared;
 
 namespace Microworkers.Domain.Core.Aggregates;
-public class Taski 
+public class Taski : AggregateRoot
 {
+    internal  Taski(
+    Guid id,
+    Guid customer,
+    Guid serviceProvider,
+    Guid requiredSkill,
+    DateTime requestDate,
+    TaskDescription description,
+    TaskiStatus status)
+    {
+        Id = id;
+        Customer = customer;
+        ServiceProvider = serviceProvider;
+        RequiredSkill = requiredSkill;
+        RequestDate = requestDate;
+        Description = description;
+        Status = status;
+    }
+
     public Guid Id { get; private set; }
     public Guid Customer { get; private set; }
     public Guid ServiceProvider { get; private set; }
@@ -17,38 +36,9 @@ public class Taski
 
     private readonly List<TaskiUpdate> _updates = new();
     public IReadOnlyCollection<TaskiUpdate> Updates => _updates.AsReadOnly();
-
     private Taski() { }
 
-    // Factory Method
-    private static Taski Build(
-        Guid customer,
-        Guid  serviceProvider,
-        Guid requiredSkill,
-        string description)
-    {
-        if (customer.Equals(Guid.Empty))
-            throw new DomainException("Customer cannot be empty", nameof(customer));
-
-        if (requiredSkill.Equals(Guid.Empty))
-            throw new DomainException("ServiceProvider cannot be empty", nameof(serviceProvider));
-
-        EnsureCustomerCanCreateTask(customer, new List<Taski>());
-
-        return new Taski
-        {
-            Id = Guid.NewGuid(),
-            Customer = customer,
-            ServiceProvider = serviceProvider,
-            RequiredSkill = requiredSkill,
-            RequestDate = DateTime.UtcNow,
-            Description = TaskDescription.Create(description),
-            Status = TaskiStatus.Opened,
-            Result = TaskiResult.Pending,
-        };
-    }
-
-    // Comportamentos do domínio
+    #region Comportamentos do domínio
     public void StartTask()
     {
         if (Status != TaskiStatus.Opened)
@@ -56,18 +46,6 @@ public class Taski
 
         Status = TaskiStatus.InProgress;
         AddUpdate("Task started by service provider");
-    }
-
-    public static Taski Create(
-        Guid customer,
-        Guid serviceProvider,
-        Guid requiredSkill,
-        string description,
-        IEnumerable<Taski> existingCustomerTasks)
-    {
-        EnsureCustomerCanCreateTask(customer, existingCustomerTasks);
-
-        return Build(customer, serviceProvider, requiredSkill, description);
     }
 
     public void CompleteTask(TaskiResult result, string completionNotes)
@@ -88,18 +66,21 @@ public class Taski
         Status = TaskiStatus.Cancelled;
         AddUpdate($"Task cancelled. Reason: {reason}");
     }
-    // Método privado para adicionar atualizações
+  
     private void AddUpdate(string message)
     {
         //_updates.Add(new TaskiUpdate(Id, message));
     }
-
-    public static void EnsureCustomerCanCreateTask(Guid customerId, IEnumerable<Taski> existingTasks)
+    public static Result<bool> EnsureCustomerCanCreateTask(Guid customerId, IEnumerable<Taski> existingTasks)
     {
         int inProgress = existingTasks.Count(t => t.Customer == customerId && t.Status == TaskiStatus.InProgress);
 
         if (inProgress == 3)
-            throw new DomainException("Customer cannot have more than 3 tasks in progress", nameof(existingTasks));
+            Result<Taski>.Fail("Customer cannot have more than 3 tasks in progress");
+
+        return Result<Taski>.Ok<bool>(true);
     }
+
+    #endregion
 
 }

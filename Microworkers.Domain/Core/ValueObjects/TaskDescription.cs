@@ -1,20 +1,24 @@
-﻿using Microworkers.Domain.Core.Exceptions;
+﻿using Microworkers.Domain.Shared;
 
 namespace Microworkers.Domain.Core.ValueObjects;
-public readonly record struct TaskDescription
+public record TaskDescription
 {
-    public string Value { get; }
+    private string Value { get; init; }
 
-    private TaskDescription(string value) => Value = value;
+    internal TaskDescription(string value) => Value = value;
 
-    public static TaskDescription Create(string description)
+    public static Result<TaskDescription> Create(string description)
     {
+        List<string> errors = new();
         if (string.IsNullOrWhiteSpace(description))
-            throw new DomainException("Task description cannot be empty", nameof(description));
-
+            errors.Add("Task description cannot be empty");
+        
         if (description.Length > 500)
-            throw new DomainException("Task description cannot exceed 500 characters", nameof(description));
+            errors.Add("Task description cannot exceed 500 characters");
 
-        return new TaskDescription(description.Trim());
+        if (errors.Any())
+            return Result.Fail<TaskDescription>(string.Join("; ", errors));
+
+        return Result.Ok(new TaskDescription(description.Trim()));
     }
 }

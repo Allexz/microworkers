@@ -106,34 +106,7 @@ public class UserTest
     {
         // Act & Assert
         Assert.Throws<InvalidAddressDomainException>(() =>
-            Address.Create(state, zipCode, city, neighborHood, street, number));
+            AddressFactory.Create(state, zipCode, city, neighborHood, street, number));
     }
-
-    [Fact]
-    public void Given_Existing_User_When_Updating_With_Invalid_Data_Then_Throw_Exception()
-    {
-        // Arrange
-        var faker = new Faker();
-        var user = UserTestData.GenerateValidUser();
-        var expectedMessage = "Phone must be in the format (XX)XXXXX-XXXX";
-        // Act
-        var exception = Assert.Throws<InvalidPhoneException>(
-            () =>
-            {
-                User.With(user, phone: Phone.Create("222222"));
-            });
-        // Assert
-        Assert.Contains(expectedMessage, exception.Message);
-    }
-
-
-
-
-
-
-
-
-
-
 
 }
