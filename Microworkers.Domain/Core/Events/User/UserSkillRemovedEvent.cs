@@ -1,4 +1,4 @@
-﻿namespace Microworkers.Domain.Core.Events.User;
+﻿namespace Microworkers.Domain.Core.Events ;
 public record UserSkillRemovedEvent(Guid UserId, Guid SkillId)
     : DomainEvent
 {

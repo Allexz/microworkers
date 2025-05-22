@@ -2,7 +2,7 @@
 
 namespace Microworkers.Domain.Core.ValueObjects;
 
-public readonly record struct Phone
+public record Phone
 {
     private Phone(string number) => Number = number;
     public string Number { get; }

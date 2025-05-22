@@ -1,6 +1,6 @@
 ﻿using Microworkers.Domain.Core.ValueObjects;
 
-namespace Microworkers.Domain.Core.Events.User;
+namespace Microworkers.Domain.Core.Events ;
 public record UserPhoneChangedEvent(Guid UserId, Phone NewPhone)
     : DomainEvent
 {

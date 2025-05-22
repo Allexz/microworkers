@@ -4,7 +4,7 @@ using Microworkers.Domain.Core.Validations;
 
 namespace Microworkers.Domain.Core.ValueObjects;
 
-public sealed record Address
+public record Address
 {
     private Address() { }
 

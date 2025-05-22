@@ -27,4 +27,6 @@ public abstract class AggregateRoot
     }
 
     public int Version { get; protected set; } = -1;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

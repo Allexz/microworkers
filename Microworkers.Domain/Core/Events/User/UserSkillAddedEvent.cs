@@ -1,6 +1,6 @@
 ﻿using Microworkers.Domain.Core.Entities;
 
-namespace Microworkers.Domain.Core.Events.User;
+namespace Microworkers.Domain.Core.Events ;
 public record UserSkillAddedEvent(Guid UserId, Skill Skill)
     : DomainEvent
 {

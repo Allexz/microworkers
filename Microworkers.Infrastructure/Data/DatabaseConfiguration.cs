@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace Microworkers.Infrastructure.Data;
 
@@ -24,24 +23,14 @@ public static class DatabaseConfiguration
         {
             switch (databaseType)
             {
-                //case "postgres":
-                //    options.UseNpgsql(
-                //        connectionString,
-                //        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
-                //            maxRetryCount: 3,
-                //            maxRetryDelay: TimeSpan.FromSeconds(1),
-                //            errorCodesToAdd: null));
-                //    break;
-
-                //case "mysql":
-                //    options.UseMySql(
-                //        connectionString,
-                //        ServerVersion.AutoDetect(connectionString),
-                //        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-                //            errorNumbersToAdd: null,
-                //            maxRetryCount: 3,
-                //            maxRetryDelay: TimeSpan.FromSeconds(1)));
-                //    break;
+                case "postgresql":
+                    options.UseNpgsql(
+                        connectionString,
+                        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 3,
+                            maxRetryDelay: TimeSpan.FromSeconds(1),
+                            errorCodesToAdd: null));
+                    break;
 
                 case "mssql":
                     options.UseSqlServer(

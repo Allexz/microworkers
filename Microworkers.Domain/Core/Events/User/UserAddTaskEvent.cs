@@ -1,4 +1,4 @@
-﻿namespace Microworkers.Domain.Core.Events.User;
+﻿namespace Microworkers.Domain.Core.Events ;
 public record UserAddTaskEvent(Guid customer,
         Guid serviceProvider,
         Guid requiredSkill,

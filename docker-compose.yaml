@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  webapi:
+    image: microworkers-api
+    build:
+      context: .
+      dockerfile: Microworkers.ApiServices/Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PostgresConnection=Server=db;Database=microworkers;User Id=postgres;Password=postgres;
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    container_name: microworkers_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: microworkers
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  
+
+volumes:
+  postgres_data:

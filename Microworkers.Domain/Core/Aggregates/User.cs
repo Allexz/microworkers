@@ -1,8 +1,10 @@
 ﻿using Microworkers.Domain.Core.Entities;
-using Microworkers.Domain.Core.Events.User;
+using Microworkers.Domain.Core.Events ;
 using Microworkers.Domain.Core.Exceptions;
 using Microworkers.Domain.Core.Validations;
 using Microworkers.Domain.Core.ValueObjects;
+using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace Microworkers.Domain.Core.Aggregates;
 
@@ -45,6 +47,48 @@ public class User : AggregateRoot
         return user;
     }
 
+    public static User With(
+    User currentUser,
+    string name = null,
+    string document = null,
+    Phone phone = null,
+    string username = null,
+    Address address = null)
+    {
+        if (currentUser is null)
+            throw new ArgumentNullException("User cannot be null");
+
+        // Se a validação passar, aplicar as alterações ao usuário real
+        currentUser.Name = !string.IsNullOrWhiteSpace(name)
+            ? name
+            : currentUser.Name;
+        currentUser.Document = !string.IsNullOrWhiteSpace(document)
+            ? document
+            : currentUser.Document;
+        currentUser.Username = !string.IsNullOrWhiteSpace(username)
+            ? username
+            : currentUser.Username;
+
+        currentUser.Phone = phone != null
+            ? phone
+            : currentUser.Phone;
+        
+        currentUser.Address = address != null
+            ? address
+            : currentUser.Address;
+
+        // Validar o usuário temporário
+        var userValidator = new UpdateUserValidator();
+        var validationResult = userValidator.Validate(currentUser);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            throw new InvalidUserDomainException($"User update failed: {string.Join(", ", errors)}");
+        }
+
+        return currentUser;
+    }
     private User(Guid id, string name, string document, string password, Phone phone, string username, Address address)
     {
         Id = id;

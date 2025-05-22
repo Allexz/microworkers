@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microworkers.Domain.Core.Aggregates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 namespace Microworkers.Infrastructure.Data;
 internal class MicroworkerContexto : DbContext
 {
+
+    public DbSet<User> Users { get; set; }
     public MicroworkerContexto() { }
     public MicroworkerContexto(DbContextOptions<MicroworkerContexto> options)
         :base(options)

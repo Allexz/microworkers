@@ -2,10 +2,12 @@
 
 namespace Microworkers.Domain.Core.Entities;
 
-public readonly record struct Skill
+public record Skill
 {
     public Guid Id { get; }
     public string? Name { get; }
+
+    public Guid UserId { get; set; }
 
     public Skill(Guid Id, string name)
     {

@@ -8,24 +8,26 @@ public static class UserTestData
 {
     public static User GenerateValidUser()
     {
-        var faker = new Faker();
+        Faker faker = new Faker("pt_BR");
+        string name = faker.Person.FullName;
+        string username = faker.Person.Email;
+        Phone phone = Phone.Create($"({faker.Random.Number(10, 99):00})" +       // (dd)
+               $"{faker.Random.Number(10000, 99999):00000}-" + // ddddd-
+               $"{faker.Random.Number(1000, 9999):0000}");
+
+
         return User.Create(
         Guid.NewGuid(),
-        faker.Person.FullName,
+        name.Length > 75
+            ? name.Substring(0,75)
+        : name,
         faker.Person.Cpf(),
-        password: $"Test@{faker.Random.Number(100, 999)}",
-        phone: Phone.Create($"({faker.Random.Number(10, 99):00})" +       // (dd)
-               $"{faker.Random.Number(10000, 99999):00000}-" + // ddddd-
-               $"{faker.Random.Number(1000, 9999):0000}"),     // dddd
-        username: faker.Person.Email,
-        address: Address.Create(
-            state: faker.Address.State(),
-        zipCode: faker.Address.ZipCode("#####-###"),
-        city: faker.Address.City(),
-        neighborHood: faker.Address.County(),
-        street: faker.Address.StreetName(),
-        number: faker.Address.BuildingNumber())
-        );
+        password: $"XPTOzy1234****",
+        phone: phone,     // dddd
+        username: username.Length > 75 
+            ? username.Substring(0,75)
+            : username,
+        address: AddressTestData.GenerateValidAddress());
     }
 
     public static User GenerateUserWithInvalidUserName()

@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
-using Microworkers.Domain.Core.Aggregates;
+using Do = Microworkers.Domain.Core.Aggregates;
 
 namespace Microworkers.Domain.Core.Validations;
-public class UserValidator : AbstractValidator<User>
+public class UserValidator : AbstractValidator<Do.User>
 {
     public UserValidator()
     {
@@ -20,7 +20,9 @@ public class UserValidator : AbstractValidator<User>
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithMessage("Password cannot be empty.");
+            .WithMessage("Password cannot be empty.")
+            .Length(10,100)
+            .WithMessage("Password must be at least 10 character and cannot be longer than 100");
 
         RuleFor(x => x.Phone).SetValidator(new PhoneValidator());
 

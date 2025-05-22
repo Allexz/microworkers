@@ -10,8 +10,7 @@ public class PhoneValidator : AbstractValidator<Phone>
             .NotNull()
             .NotEmpty()
             .WithMessage("Phone cannot be null nor empty")
-            .Matches("^\\(\\d{2}\\)\\d{5}-\\d{3}$\r\n")
+            .Matches("^\\(\\d{2}\\)\\d{5}-\\d{4}$")
             .WithMessage("Phone must be in the format (XX)XXXXX-XXXX");
-
     }
 }
