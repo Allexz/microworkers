@@ -27,4 +27,9 @@
     <ProjectReference Include="..\Microworkers.Domain\Microworkers.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Identity\" />
+    <Folder Include="Data\ExternalServices\" />
+  </ItemGroup>
+
 </Project>

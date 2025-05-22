@@ -78,7 +78,7 @@ public class User : AggregateRoot
             : currentUser.Address;
 
         // Validar o usuário temporário
-        var userValidator = new UpdateUserValidator();
+        var userValidator = new UserValidator(false);
         var validationResult = userValidator.Validate(currentUser);
 
         if (!validationResult.IsValid)

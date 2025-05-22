@@ -52,7 +52,7 @@ public class UserTest
     {
         Faker faker = new Faker();
         var expectedMessage = "Phone must be in the format (XX)XXXXX-XXXX";
-        var exception = Assert.Throws<InvalidUserDomainException>(
+        var exception = Assert.Throws<InvalidPhoneException>(
             () => UserTestData.GenerateUserWithInvalidPhone());
         Assert.Contains(expectedMessage, exception.Message);
     }
@@ -117,7 +117,7 @@ public class UserTest
         var user = UserTestData.GenerateValidUser();
         var expectedMessage = "Phone must be in the format (XX)XXXXX-XXXX";
         // Act
-        var exception = Assert.Throws<InvalidUserDomainException>(
+        var exception = Assert.Throws<InvalidPhoneException>(
             () =>
             {
                 User.With(user, phone: Phone.Create("222222"));
