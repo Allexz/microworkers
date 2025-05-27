@@ -1,9 +1,10 @@
-﻿using Microworkers.Domain.Core.Enums;
+﻿using Microworkers.Domain.Core.Aggregates;
+using Microworkers.Domain.Core.Enums;
 using Microworkers.Domain.Core.ValueObjects;
 using Microworkers.Domain.Shared;
 
-namespace Microworkers.Domain.Core.Aggregates;
-public static class TaskiFactory
+namespace Microworkers.Domain.Core.Factories;
+public class TaskiFactory
 {
     internal static Result<Taski> Create(
         Guid customer,
@@ -25,7 +26,7 @@ public static class TaskiFactory
         if (errors.Any())
             return Result.Fail<Taski>(string.Join("; ", errors));
 
-        return Result.Ok<Taski>( new Taski
+        return Result.Ok( new Taski
         (Guid.NewGuid(),customer,serviceProvider,requiredSkill, DateTime.UtcNow, taskDescriptionResult.Value,
         TaskiStatus.Opened));
     }

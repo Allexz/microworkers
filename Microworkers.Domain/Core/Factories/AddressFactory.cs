@@ -1,7 +1,8 @@
-﻿using Microworkers.Domain.Shared;
+﻿using Microworkers.Domain.Core.ValueObjects;
+using Microworkers.Domain.Shared;
 using System.Text.RegularExpressions;
 
-namespace Microworkers.Domain.Core.ValueObjects;
+namespace Microworkers.Domain.Core.Factories;
 public static class AddressFactory
 {
     public static Result<Address> Create(
@@ -61,4 +62,58 @@ public static class AddressFactory
         var address = new Address(state, zipCode, city, neighborHood, street, number, additional);
         return Result.Ok(address);
     }
+
+
+    public static Result<Address> With(
+    Address currentAddress,
+    string state = null,
+    string zipCode = null,
+    string city = null,
+    string neighborHood = null,
+    string street = null,
+    string number = null,
+    string? additional = null)
+    {
+        if (currentAddress == null)
+            return Result.Fail<Address>("Current address cannot be null.");
+
+        var errors = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(state) && state.Length != 2)
+            errors.Add("State must be 2 characters long");
+
+        if (!string.IsNullOrWhiteSpace(zipCode) && !Regex.IsMatch(zipCode, @"^\d{5}-\d{3}$"))
+            errors.Add("ZipCode must be in the format XXXXX-XXX");
+
+        if (!string.IsNullOrWhiteSpace(city) && city.Length > 75)
+            errors.Add("City must be at most 75 characters long");
+
+        if (!string.IsNullOrWhiteSpace(neighborHood) && neighborHood.Length > 30)
+            errors.Add("Neighborhood must be at most 30 characters long");
+
+        if (!string.IsNullOrWhiteSpace(street) && street.Length > 75)
+            errors.Add("Street must be at most 75 characters long");
+
+        if (!string.IsNullOrWhiteSpace(number) && number.Length > 10)
+            errors.Add("Number must be at most 10 characters long");
+
+        if (additional != null && additional.Length > 30)
+            errors.Add("Additional must be at most 30 characters long");
+
+        if (errors.Any())
+            return Result.Fail<Address>(string.Join("; ", errors));
+
+        var newAddress = new Address(
+            state ?? currentAddress.State,
+            zipCode ?? currentAddress.ZipCode,
+            city ?? currentAddress.City,
+            neighborHood ?? currentAddress.NeighborHood,
+            street ?? currentAddress.Street,
+            number ?? currentAddress.Number,
+            additional ?? currentAddress.Additional
+        );
+
+        return Result.Ok(newAddress);
+    }
+
 }

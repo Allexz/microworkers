@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microworkers.Domain.Core.Aggregates;
+using Microworkers.Domain.Core.Entities;
 
 namespace Microworkers.Infrastructure.Data.Mappers;
 internal class UserMapConfiguration : IEntityTypeConfiguration<User>
@@ -10,7 +11,7 @@ internal class UserMapConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("Users");
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id)
-            .HasColumnName("Id")
+            .HasColumnName("Id").HasColumnType("uuid")
             .IsRequired();
 
         builder.Property<string>(x => x.Name)
@@ -18,10 +19,6 @@ internal class UserMapConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(75);
 
-        builder.Property<string>(x => x.Document)
-            .HasColumnName("Document")
-            .IsRequired()
-            .HasMaxLength(14);
 
         builder.Property<string>(x => x.Password)
             .HasColumnName("Password")
@@ -32,6 +29,19 @@ internal class UserMapConfiguration : IEntityTypeConfiguration<User>
            .HasColumnName("Username")
            .IsRequired()
            .HasMaxLength(100);
+
+        builder.OwnsOne(x => x.Document, document =>
+        {
+            document.Property(p => p.Number)
+                .HasColumnName("Document")
+                .IsRequired()
+                .HasMaxLength(30);
+
+            document.Property(p => p.DocType)
+                .HasColumnName("DocumentType")
+                .IsRequired()
+                .HasConversion<string>( );
+        });
 
         builder.OwnsOne(x => x.Phone, phone =>
         {
@@ -73,14 +83,37 @@ internal class UserMapConfiguration : IEntityTypeConfiguration<User>
                 .IsRequired()
                 .HasMaxLength(10);
 
-            address.Property<string>(a => a.Additional)
+            address.Property<string?>(a => a.Additional)
                 .HasColumnName("Additional")
                 .HasMaxLength(30);
         });
 
-        builder.HasMany(x => x.Skills)
+        builder.HasMany(u => u.Skills)           // User tem muitas Skills
+       .WithMany(s => s.Users)           // Skill tem muitos Users
+       .UsingEntity<Dictionary<string, object>>( // Tabela de junção
+           "UserSkills",                  // Nome da tabela
+           j => j.HasOne<Skill>()         // Configuração do lado Skill
+                 .WithMany()
+                 .HasForeignKey("SkillId")
+                 .OnDelete(DeleteBehavior.Cascade),
+           j => j.HasOne<User>()         // Configuração do lado User
+                 .WithMany()
+                 .HasForeignKey("UserId")
+                 .OnDelete(DeleteBehavior.Cascade),
+           j => j.HasKey("UserId", "SkillId") // Chave composta
+       );
+
+        // Taskis mapping (as relationship)
+        builder.HasMany(x => x.Taskis)
             .WithOne()
-            .HasForeignKey(x => x.UserId)
+            .HasForeignKey("UserId")
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Proposals mapping (as relationship)
+        builder.HasMany(x => x.Proposals)
+            .WithOne()
+            .HasForeignKey("UserId")
+            .OnDelete(DeleteBehavior.Cascade);
+
     }
 }

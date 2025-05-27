@@ -1,18 +1,20 @@
-﻿using Microworkers.Domain.Shared;
+﻿using Microworkers.Domain.Core.Aggregates;
+using Microworkers.Domain.Shared;
 
 namespace Microworkers.Domain.Core.Entities;
 
-public record Skill
+public class Skill
 {
     private Skill() { }
-    internal Skill(Guid id, string? name)
+    internal Skill(Guid id, string  name)
     {
         Id = id;
         Name = name;
     }
 
-    public Guid Id { get; }
-    public string? Name { get; }
+    public Guid Id { get; private init; }
+    public string  Name { get;private init; }
+    public ICollection<User> Users { get; init; }
 
     public static Result<Skill> Create(Guid Id, string name)
     {

@@ -2,10 +2,10 @@
 
 namespace Microworkers.Domain.Core.ValueObjects;
 
-public readonly record struct ProposalDescription
+public record ProposalDescription
 {
-    public string Value { get; }
-    private ProposalDescription(string value) => Value = value;
+    public string Description { get; private init; }
+    private ProposalDescription(string value) => Description = value;
 
     public static ProposalDescription Create(string description)
     {

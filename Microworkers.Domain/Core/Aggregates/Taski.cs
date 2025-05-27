@@ -16,8 +16,8 @@ public class Taski : AggregateRoot
     TaskiStatus status)
     {
         Id = id;
-        Customer = customer;
-        ServiceProvider = serviceProvider;
+        CustomerId = customer;
+        ServiceProviderId = serviceProvider;
         RequiredSkill = requiredSkill;
         RequestDate = requestDate;
         Description = description;
@@ -25,8 +25,8 @@ public class Taski : AggregateRoot
     }
 
     public Guid Id { get; private set; }
-    public Guid Customer { get; private set; }
-    public Guid ServiceProvider { get; private set; }
+    public Guid CustomerId { get; private set; }
+    public Guid ServiceProviderId { get; private set; }
     public Guid RequiredSkill { get; private set; }
     public DateTime RequestDate { get; private set; }
     public TaskDescription Description { get; private set; } // Value object
@@ -45,7 +45,7 @@ public class Taski : AggregateRoot
             throw new DomainException("Task can only be started from Opened status", nameof(TaskiStatus));
 
         Status = TaskiStatus.InProgress;
-        AddUpdate("Task started by service provider");
+        AddUpdate(CustomerId,"Task started by service provider");
     }
 
     public void CompleteTask(TaskiResult result, string completionNotes)
@@ -56,7 +56,7 @@ public class Taski : AggregateRoot
         Status = TaskiStatus.Completed;
         Result = result;
         CompletionDate = DateTime.UtcNow;
-        AddUpdate($"Task completed with result: {result}. Notes: {completionNotes}");
+        AddUpdate(CustomerId, $"Task completed with result: {result}. Notes: {completionNotes}");
     }
     public void CancelTask(string reason)
     {
@@ -64,16 +64,19 @@ public class Taski : AggregateRoot
             throw new DomainException("Cannot cancel already completed or cancelled task", nameof(reason));
 
         Status = TaskiStatus.Cancelled;
-        AddUpdate($"Task cancelled. Reason: {reason}");
+        AddUpdate(CustomerId, $"Task cancelled. Reason: {reason}");
     }
   
-    private void AddUpdate(string message)
+    public void AddUpdate(Guid userId, string message)
     {
-        //_updates.Add(new TaskiUpdate(Id, message));
+        if (userId != CustomerId && userId != ServiceProviderId)
+            throw new DomainException("Only the customer or service provider can add updates.", nameof(userId));
+
+        _updates.Add(new TaskiUpdate(Id, userId, message));
     }
     public static Result<bool> EnsureCustomerCanCreateTask(Guid customerId, IEnumerable<Taski> existingTasks)
     {
-        int inProgress = existingTasks.Count(t => t.Customer == customerId && t.Status == TaskiStatus.InProgress);
+        int inProgress = existingTasks.Count(t => t.CustomerId == customerId && t.Status == TaskiStatus.InProgress);
 
         if (inProgress == 3)
             Result<Taski>.Fail("Customer cannot have more than 3 tasks in progress");

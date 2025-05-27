@@ -1,11 +1,12 @@
-﻿using Microworkers.Domain.Core.Events;
+﻿using Microworkers.Domain.Core.Aggregates;
+using Microworkers.Domain.Core.Events;
 using Microworkers.Domain.Core.ValueObjects;
 using Microworkers.Domain.Shared;
 
-namespace Microworkers.Domain.Core.Aggregates;
+namespace Microworkers.Domain.Core.Factories;
 public static class UserFactory
 {
-    public static Result<User> Create(Guid id, string name, string document, string password, Phone phone, string username, Address address)
+    public static Result<User> Create(Guid id, string name, Document document, string password, Phone phone, string username, Address address)
     {
         var errors = new List<string>();
 
@@ -16,11 +17,10 @@ public static class UserFactory
             errors.Add("Name must be at least 3 character and cannot be longer than 75.");
 
         // Document validation (CPF format: XXX.XXX.XXX-XX)
-        if (string.IsNullOrWhiteSpace(document))
-            errors.Add("Document cannot be empty.");
-        else if (!System.Text.RegularExpressions.Regex.IsMatch(document, @"^\d{3}\.\d{3}\.\d{3}-\d{2}$"))
-            errors.Add("Document must be in the format XXX.XXX.XXX-XX.");
-
+        Result<Document> documentResult = DocumentFactory.Create(document.Number, Enums.DocumentType.CPF);
+        if (documentResult.IsFailure)
+            errors.Add(documentResult.Error);
+        
         // Password validation
         if (string.IsNullOrWhiteSpace(password))
             errors.Add("Password cannot be empty.");
@@ -55,7 +55,7 @@ public static class UserFactory
             return Result.Fail<User>(string.Join("; ", errors));
 
         var user = new User(id, name, document, password, phoneResult.Value, username, addressResult.Value);
-        user.AddDomainEvent(new UserCreatedEvent(user.Id, user.Name, user.Document, user.Phone, user.Username));
+        user.AddDomainEvent(new UserCreatedEvent(user.Id, user.Name, document, user.Phone, user.Username));
         return Result.Ok(user);
     }
 }

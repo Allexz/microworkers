@@ -8,7 +8,7 @@ public class User : AggregateRoot
 {
     public Guid Id { get; private set; }
     public string Name { get; private set; }
-    public string Document { get; private set; }
+    public Document Document { get; private set; }
     public string Password { get; private set; }
     public Phone Phone { get; private set; }
     public string Username { get; private set; }
@@ -28,7 +28,7 @@ public class User : AggregateRoot
     public IReadOnlyCollection<Proposal> Proposals => _proposals.AsReadOnly();
 
     private User() { }
-    internal User(Guid id, string name, string document, string password, Phone phone, string username, Address address)
+    internal User(Guid id, string name, Document document, string password, Phone phone, string username, Address address)
     {
         Id = id;
         Name = name;

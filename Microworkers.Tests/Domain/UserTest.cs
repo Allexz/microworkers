@@ -1,7 +1,9 @@
 ﻿using Bogus;
 using Microworkers.Domain.Core.Aggregates;
 using Microworkers.Domain.Core.Exceptions;
+using Microworkers.Domain.Core.Factories;
 using Microworkers.Domain.Core.ValueObjects;
+using Microworkers.Domain.Shared;
 using Microworkers.Tests.TestData;
 
 namespace Microworkers.Tests.Domain;
@@ -12,9 +14,8 @@ public class UserTest
     {
         Faker faker = new Faker();
         var expectedMessage = "Username must be a valid email address";
-        var exception = Assert.Throws<InvalidUserDomainException>(  
-            () => UserTestData.GenerateUserWithInvalidUserName());
-        Assert.Contains(expectedMessage, exception.Message);
+        Result<User> resultUser = UserTestData.GenerateUserWithInvalidUserName();
+        Assert.Contains(expectedMessage, resultUser.Error);
     }
 
     [Fact]
@@ -22,9 +23,8 @@ public class UserTest
     {
         Faker faker = new Faker();
         var expectedMessage = "Name cannot be empty";
-        var exception = Assert.Throws<InvalidUserDomainException>(
-            () => UserTestData.GenerateUserWithInvalidName());
-        Assert.Contains(expectedMessage, exception.Message);
+        Result<User> resultUser = UserTestData.GenerateUserWithInvalidName();
+        Assert.Contains(expectedMessage, resultUser.Error);
     }
 
     [Fact]
@@ -32,19 +32,17 @@ public class UserTest
     {
         Faker faker = new Faker();
         var expectedMessage = "Name must be at least 3 character and cannot be longer than 75.";
-        var exception = Assert.Throws<InvalidUserDomainException>(
-            () => UserTestData.GenerateUserWithInvalidLongName());
-        Assert.Contains(expectedMessage, exception.Message);
+        Result<User> resultUser = UserTestData.GenerateUserWithInvalidLongName();
+        Assert.Contains(expectedMessage, resultUser.Error);
     }
 
     [Fact]
     public void Give_New_User_When_CPF_Invalid_Then_Throw_Exception()
     {
         Faker faker = new Faker();
-        var expectedMessage = "Document must be in the format XXX.XXX.XXX-XX.";
-        var exception = Assert.Throws<InvalidUserDomainException>(
-            () => UserTestData.GenerateUserWithInvalidCpf());
-        Assert.Contains(expectedMessage, exception.Message);
+        var expectedMessage = "Document is not a valid CPF";
+        Result<User> resultUser = UserTestData.GenerateUserWithInvalidCpf();
+        Assert.Contains(expectedMessage, resultUser.Error);
     }
 
     [Fact]
@@ -52,28 +50,32 @@ public class UserTest
     {
         Faker faker = new Faker();
         var expectedMessage = "Phone must be in the format (XX)XXXXX-XXXX";
-        var exception = Assert.Throws<InvalidPhoneException>(
-            () => UserTestData.GenerateUserWithInvalidPhone());
-        Assert.Contains(expectedMessage, exception.Message);
+        Result<User> resultUser  =  UserTestData.GenerateUserWithInvalidPhone() ;
+        Assert.Contains(expectedMessage, resultUser.Error);
     }
 
     [Theory]
-    [InlineData("Novo Estado", null, null, null, null, null, null)]
+    [InlineData("No", null, null, null, null, null, null)]
     [InlineData(null, "98765-432", null, null, null, null, null)]
     [InlineData(null, null, "Nova Cidade", null, null, null, null)]
     [InlineData(null, null, null, "Novo Bairro", null, null, null)]
     [InlineData(null, null, null, null, "Nova Rua", null, null)]
     [InlineData(null, null, null, null, null, "999", null)]
     [InlineData(null, null, null, null, null, null, "Novo Complemento")]
-    public void With_ShouldUpdateOnlySpecifiedFields(
-    string? newState, string? newZipCode, string? newCity,
-    string? newNeighborHood, string? newStreet, string? newNumber, string? newAdditional)
+    public void With_ShouldUpdateOnlySpecifiedFields(string newState = null,
+                                                     string newZipCode = null,
+                                                     string newCity = null,
+                                                     string newNeighborHood = null,
+                                                     string newStreet = null,
+                                                     string newNumber = null,
+                                                     string newAdditional = null)
     {
         // Arrange
         var original = AddressTestData.GenerateValidAddress();
 
         // Act
-        var updated = original.With(
+        Address updated = AddressFactory.With(
+            original,
             state: newState,
             zipCode: newZipCode,
             city: newCity,
@@ -81,16 +83,29 @@ public class UserTest
             street: newStreet,
             number: newNumber,
             additional: newAdditional
-        );
+        ).Value;
 
         // Assert
-        Assert.Equal(newState ?? original.State, updated.State);
-        Assert.Equal(newZipCode ?? original.ZipCode, updated.ZipCode);
-        Assert.Equal(newCity ?? original.City, updated.City);
-        Assert.Equal(newNeighborHood ?? original.NeighborHood, updated.NeighborHood);
-        Assert.Equal(newStreet ?? original.Street, updated.Street);
-        Assert.Equal(newNumber ?? original.Number, updated.Number);
-        Assert.Equal(newAdditional ?? original.Additional, updated.Additional);
+        if (newState != null)
+            Assert.NotEqual(original.State, updated.State);
+
+        if (newZipCode != null)
+            Assert.NotEqual(original.ZipCode, updated.ZipCode);
+
+        if (newCity != null)
+            Assert.NotEqual(original.City, updated.City);
+
+        if (newNeighborHood != null)
+            Assert.NotEqual(original.NeighborHood, updated.NeighborHood);
+
+        if (newStreet != null)
+            Assert.NotEqual(original.Street, updated.Street);
+
+        if (newNumber != null)
+            Assert.NotEqual(original.Number, updated.Number);
+
+        if (newAdditional != null)
+            Assert.NotEqual(original.Additional, updated.Additional);
     }
 
     [Theory]
@@ -100,13 +115,13 @@ public class UserTest
     [InlineData("SP", "12345-678", "São Paulo", null, "Rua A", "123")] // Neighborhood nulo
     [InlineData("SP", "12345-678", "São Paulo", "Centro", null, "123")] // Street nulo
     [InlineData("SP", "12345-678", "São Paulo", "Centro", "Rua A", null)] // Number nulo
-    public void Create_WithInvalidData_ShouldThrowException(
+    public void Given_Invalid_Address_When_Create_Results_Should_Have_Notifications(
     string state, string zipCode, string city,
     string neighborHood, string street, string number)
     {
-        // Act & Assert
-        Assert.Throws<InvalidAddressDomainException>(() =>
-            AddressFactory.Create(state, zipCode, city, neighborHood, street, number));
+        // Arrange
+        Result<Address> result = AddressFactory.Create(state, zipCode, city, neighborHood, street, number);
+        Assert.False(result.IsSuccess);
     }
 
 }

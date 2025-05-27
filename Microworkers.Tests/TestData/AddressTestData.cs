@@ -1,5 +1,5 @@
 ﻿using Bogus;
-using Bogus.DataSets;
+using Microworkers.Domain.Core.Factories;
 using VO = Microworkers.Domain.Core.ValueObjects;
 namespace Microworkers.Tests.TestData;
 public static class AddressTestData
@@ -10,7 +10,7 @@ public static class AddressTestData
         string state = faker.Address.State();
         string city = faker.Address.City();
 
-        return VO.Address.Create(
+        return  AddressFactory.Create(
             state: state.Length > 2
             ? state.Substring(0, 2)
             : state,
@@ -22,6 +22,6 @@ public static class AddressTestData
             street: faker.Address.StreetName(),
             number: faker.Random.Number(100, 200).ToString(),
             additional: "Apto 101"
-        );
+        ).Value;
     }
 }

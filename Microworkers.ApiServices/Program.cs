@@ -1,4 +1,9 @@
+using Microworkers.Infrastructure.Data;
+using System;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDatabaseModule(builder.Configuration);
 
 // Add services to the container.
 
