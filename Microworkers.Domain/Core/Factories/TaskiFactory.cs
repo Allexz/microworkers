@@ -6,9 +6,9 @@ using Microworkers.Domain.Shared;
 namespace Microworkers.Domain.Core.Factories;
 public class TaskiFactory
 {
-    internal static Result<Taski> Create(
+    public static Result<Taski> Create(
         Guid customer,
-        Guid serviceProvider,
+        User serviceProvider,
         Guid requiredSkill,
         string description)
     {
@@ -17,17 +17,34 @@ public class TaskiFactory
         if (customer.Equals(Guid.Empty))
             errors.Add("Customer cannot be empty");
         if (requiredSkill.Equals(Guid.Empty))
-            errors.Add("ServiceProvider cannot be empty");
+            errors.Add("Task without required skill");
+        if(serviceProvider == null)
+            errors.Add("ServiceProvider cannot be null");
+
+        if (errors.Any())
+            return Result.Fail<Taski>(string.Join("; ", errors));
 
         Result<TaskDescription> taskDescriptionResult = TaskDescription.Create(description);
         if (taskDescriptionResult.IsFailure)
             errors.Add(taskDescriptionResult.Error);
 
+        var resultCountUserTaskis = serviceProvider.CanAcceptNewTaskInProgress();
+        if (resultCountUserTaskis.IsFailure)
+            errors.Add(resultCountUserTaskis.Error);
+
         if (errors.Any())
             return Result.Fail<Taski>(string.Join("; ", errors));
 
-        return Result.Ok( new Taski
-        (Guid.NewGuid(),customer,serviceProvider,requiredSkill, DateTime.UtcNow, taskDescriptionResult.Value,
-        TaskiStatus.Opened));
+        Taski task = new Taski
+        (
+            Guid.NewGuid(),
+            customer,
+            serviceProvider.Id,
+            requiredSkill,
+            DateTime.UtcNow,
+            taskDescriptionResult.Value,
+            TaskiStatus.Opened
+        );
+        return Result.Ok( task);
     }
 }

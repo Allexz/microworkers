@@ -11,4 +11,14 @@
     <Folder Include="Users\Queries\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microworkers.Domain\Microworkers.Domain.csproj" />
+    <ProjectReference Include="..\Microworkers.Infrastructure\Microworkers.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

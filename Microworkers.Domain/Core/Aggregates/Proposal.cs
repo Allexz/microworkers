@@ -40,6 +40,14 @@ public class Proposal
             throw new DomainException("Proposal can only be accepted from Pending status", nameof(Status));
         Status = ProposalStatus.Accepted;
     }
+
+    public void RejectProposal()
+    {
+        if (Status != ProposalStatus.Pending)
+            throw new DomainException("Proposal can only be rejected from Pending status", nameof(Status));
+        Status = ProposalStatus.Rejected;
+    }   
+
     public void Cancel(Guid requestingServiceProviderId)
     {
         if (requestingServiceProviderId != ServiceProviderId)
