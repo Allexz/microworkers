@@ -23,7 +23,7 @@ public class Taski : AggregateRoot
         Description = description;
         Status = status;
     }
-
+    // TODO: Implement an property that return all taskis of the service provider that are in progress
     public Guid Id { get; private set; }
     public Guid CustomerId { get; private set; }
     public Guid ServiceProviderId { get; private set; }
@@ -73,15 +73,6 @@ public class Taski : AggregateRoot
             throw new DomainException("Only the customer or service provider can add updates.", nameof(userId));
 
         _updates.Add(new TaskiUpdate(Id, userId, message));
-    }
-    public static Result<bool> EnsureCustomerCanCreateTask(Guid customerId, IEnumerable<Taski> existingTasks)
-    {
-        int inProgress = existingTasks.Count(t => t.CustomerId == customerId && t.Status == TaskiStatus.InProgress);
-
-        if (inProgress == 3)
-            Result<Taski>.Fail("Customer cannot have more than 3 tasks in progress");
-
-        return Result<Taski>.Ok<bool>(true);
     }
 
     #endregion

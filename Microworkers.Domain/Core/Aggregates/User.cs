@@ -1,6 +1,9 @@
 ﻿using Microworkers.Domain.Core.Entities;
+using Microworkers.Domain.Core.Enums;
+using Microworkers.Domain.Core.Events;
 using Microworkers.Domain.Core.Exceptions;
 using Microworkers.Domain.Core.ValueObjects;
+using Microworkers.Domain.Shared;
 
 namespace Microworkers.Domain.Core.Aggregates;
 
@@ -39,6 +42,19 @@ public class User : AggregateRoot
         Address = address;
     }
 
+    public Result ChangePassword(string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword))
+            return Result.Fail("Password cannot be empty");
+
+        if (newPassword.Length < 10 || newPassword.Length > 100)
+            return Result.Fail("Password must be 10-100 characters");
+
+        Password = newPassword;
+        AddDomainEvent(new UserPasswordChangedEvent(Id));
+        return Result.Ok();
+    }
+
     #region Phone & Address
     public void ChangePhone(Phone newPhone)
         => Phone = newPhone ?? throw new DomainException("Phone cannot be null", nameof(newPhone));
@@ -65,12 +81,31 @@ public class User : AggregateRoot
     #endregion
 
     #region Taskis
-    public void AddTaski(Taski taski)
+    public Result AddTaski(Taski taski)
     {
         taski = taski ?? throw new DomainException("Taski cannot be null", nameof(taski));
+
+        var canAcceptNewTaskResult = CanAcceptNewTaskInProgress();
+        if (canAcceptNewTaskResult.IsFailure)
+        {
+            return canAcceptNewTaskResult;
+        }
+
         _taskis.Add(taski);
+        return Result.Ok();
     }
 
+    public Result<bool> CanAcceptNewTaskInProgress()
+    {
+        int inProgressCount = _taskis.Count(t => t.Status == TaskiStatus.InProgress);
+
+        if (inProgressCount >= 3)
+        {
+            return Result.Fail<bool>("User cannot have more than 3 tasks in progress");
+        }
+
+        return Result.Ok(true);
+    }
     public void RemoveTaski(Taski taski)
     {
         taski = taski ?? throw new DomainException("Taski cannot be null", nameof(taski));

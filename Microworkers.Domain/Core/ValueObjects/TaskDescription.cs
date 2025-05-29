@@ -12,8 +12,11 @@ public record TaskDescription
     {
         List<string> errors = new();
         if (string.IsNullOrWhiteSpace(description))
-            errors.Add("Task description cannot be empty");
-        
+            errors.Add("Task description cannot be empty or null");
+        if (errors.Any())
+            return Result.Fail<TaskDescription>(string.Join("; ", errors));
+
+
         if (description.Length > 500)
             errors.Add("Task description cannot exceed 500 characters");
 
