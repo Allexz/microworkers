@@ -124,4 +124,62 @@ public class UserTest
         Assert.False(result.IsSuccess);
     }
 
+    [Fact]
+    public void Given_UserCanChangeAddress_When_Valid_Then_Should_Create_Successfully()
+    {
+        // Arrange
+        var faker = new Faker("pt_BR");
+        User user = UserTestData.GenerateValidUser();
+        Address address = AddressTestData.GenerateValidAddress();
+        // Act
+        user.ChangeAddress(address);
+        // Assert
+        Assert.Equal(address.State, user.Address.State);
+    }
+
+    [Fact]
+    public void Given_UserChangeInvalidAddress_When_Invalid_Then_Should_Throw_Exception()
+    {
+        // Arrange
+        var faker = new Faker("pt_BR");
+        User user = UserTestData.GenerateValidUser();
+        Result<Address> address = AddressFactory.Create(
+            state: "XXX", // Invalid state
+            zipCode: "12345-678",
+            city: "São Paulo",
+            neighborHood: "Centro",
+            street: "Rua A",
+            number: "123");
+
+        Assert.False(address.IsSuccess);
+        Assert.Contains("State must be 2 characters long", address.Error);
+        Assert.Throws<DomainException>(() => user.ChangeAddress(address.Value));
+    }
+
+    [Fact]
+    public void Given_UserCanChangePhone_When_Valid_Then_Should_Create_Successfully()
+    {
+        // Arrange
+        var faker = new Faker("pt_BR");
+        User user = UserTestData.GenerateValidUser();
+        Phone phone = Phone.Create(faker.Phone.PhoneNumber("(##)#####-####")).Value;
+        // Act
+        user.ChangePhone(phone);
+        // Assert
+        Assert.Equal(phone.Number, user.Phone.Number);
+    }
+
+    [Fact]
+    public void Given_UserCannotChangeToInvalidPhone_When_Valid_Then_Should_ThrowException()
+    {
+        // Arrange
+        var faker = new Faker("pt_BR");
+        User user = UserTestData.GenerateValidUser();
+        string validPhone = user.Phone.Number;
+        Result<Phone> phone = Phone.Create(faker.Phone.PhoneNumber("(#)#####-####"));
+        // Act & Assert
+        Assert.Throws<DomainException>(() => user.ChangePhone(phone.Value));
+        Assert.Equal(validPhone, user.Phone.Number);
+    }
+
 }

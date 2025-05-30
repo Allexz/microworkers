@@ -68,7 +68,6 @@ public class User : AggregateRoot
     {
         skill = skill ?? throw new DomainException("Skill cannot be null", nameof(skill));
         _skills.Add(skill);
-
     }
 
     public void RemoveSkill(Skill skill)
