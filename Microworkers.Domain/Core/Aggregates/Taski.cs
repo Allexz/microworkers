@@ -48,6 +48,17 @@ public class Taski : AggregateRoot
         AddUpdate(CustomerId,"Task started by service provider");
     }
 
+    public void ChangeDescription(string description)
+    {
+        if (Status != TaskiStatus.Opened)
+            throw new DomainException("Task description can only be changed from Opened status", nameof(TaskDescription));
+
+        Result<TaskDescription> resultTaskDescription = TaskDescription.Create(description);  
+        description = resultTaskDescription.Value.Description;
+
+        AddUpdate(CustomerId, "Task description changed by customer");
+
+    }
     public void CompleteTask(TaskiResult result, string completionNotes)
     {
         if (Status != TaskiStatus.InProgress)
@@ -66,7 +77,6 @@ public class Taski : AggregateRoot
         Status = TaskiStatus.Cancelled;
         AddUpdate(CustomerId, $"Task cancelled. Reason: {reason}");
     }
-  
     public void AddUpdate(Guid userId, string message)
     {
         if (userId != CustomerId && userId != ServiceProviderId)

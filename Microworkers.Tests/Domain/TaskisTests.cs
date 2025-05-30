@@ -118,7 +118,7 @@ public class TaskisTests
         // Arrange
         User customer = UserTestData.GenerateValidUser();
         User serviceProvider = UserTestData.GenerateValidUser();
-        string expectedMessage = "Task description cannot be empty";
+        string expectedMessage = "Task description cannot be empty or null";
         
         // Act
         Result<Taski> taskiResult = TaskiFactory.Create(customer.Id, serviceProvider, Guid.NewGuid(), string.Empty);

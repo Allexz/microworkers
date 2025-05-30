@@ -1,4 +1,4 @@
-﻿using Microworkers.Domain.Core.Exceptions;
+﻿using Microworkers.Domain.Shared;
 
 namespace Microworkers.Domain.Core.ValueObjects;
 
@@ -7,14 +7,20 @@ public record ProposalDescription
     public string Description { get; private init; }
     private ProposalDescription(string value) => Description = value;
 
-    public static ProposalDescription Create(string description)
+    public static Result<ProposalDescription> Create(string description)
     {
+        List<string> errors = new();
         if (string.IsNullOrWhiteSpace(description))
-            throw new DomainException("Proposal description cannot be empty", nameof(description));
+            errors.Add("Proposal description cannot be empty");
         
         if (description.Length > 500)
-            throw new DomainException("Proposal description cannot exceed 500 characters", nameof(description));
-        return new ProposalDescription(description.Trim());
+            errors.Add("Proposal description cannot exceed 500 characters");
+
+        if (errors.Any())
+            return Result.Fail<ProposalDescription>(string.Join("; ", errors));
+
+
+        return Result.Ok( new ProposalDescription(description.Trim()));
     }
 
 }

@@ -35,7 +35,7 @@ internal class TaskMapConfiguration : IEntityTypeConfiguration<Taski>
 
         builder.OwnsOne(t => t.Description, desc =>
         {
-            desc.Property(d => d.Value)
+            desc.Property(d => d.Description)
                 .HasColumnName("Description")
                 .IsRequired()
                 .HasMaxLength(500);

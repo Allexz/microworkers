@@ -3,11 +3,12 @@
 namespace Microworkers.Domain.Core.ValueObjects;
 public record TaskDescription
 {
-    private TaskDescription(string value) => Value = value.Trim();
-    private string _value { get; init; }
-    public string Value { get; }
+    private TaskDescription() { }
+    internal TaskDescription(string value) => _description = value.Trim();
+    private string _description { get; init; }
+    public string Description => _description;
 
- 
+
     public static Result<TaskDescription> Create(string description)
     {
         List<string> errors = new();
